@@ -1,0 +1,26 @@
+﻿Instrukcje
+Dodaj prostą konfiguracje autoryzacji za pomocą JWT w aplikacji asp.net (.NET 5/6) - sekcja Konfiguracja,
+Dodaj endpoint do generowania JWT - dostępny bez autoryzacji,
+Dodaj serwis generujący JWT - sekcja Generowanie,
+Dodaj kontroler z zasobem (pobierający listę, dodający) i zabezpiecz jeden endpoint autoryzacją,
+Przetestuj rozwiązanie -> spróbuj dostać się do zabezpieczonego endpointa bez tokena oraz z tokenem,
+Dodatkowe (na dodatkowe punkty, można wykonać wybrane):
+Sprawdź działanie autoryzacji z rolami [Authorize(Roles ="")],
+Sprawdź działanie autoryzacji z błędnym issuerem lub wygaśniętym tokenem,
+Spróbuj wykonać podatność JWT - "alg": "none" lub  "alg": "" , bez sygnatury, czy taki token przejdzie,
+Zrób prostą kolekcję użytkowników aplikacji + przy generacji tokena sprawdzaj czy dany użytkownik istnieje w systemie oraz sprawdź jego hasło,
+
+Do zadania:
+Biblioteka:
+Konfiguracja:
+builder .Services .AddAuthorization() .AddAuthentication(opt => { opt.DefaultScheme = JwtBearerDefaults.AuthenticationScheme; opt.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme; }) .AddJwtBearer(opt => { opt.TokenValidationParameters = new TokenValidationParameters { ValidateAudience = false, ValidateLifetime = true, ValidateIssuerSigningKey = true, ValidateIssuer = true, ValidIssuer = "test", IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("w+1alOGke7bSPTgeMVlDXS5FRg3jcjRxkBtG0u3NrOo=")) }; });
++
+app .UseAuthentication() .UseAuthorization();
+Generowanie:
+public interface IJwtTokenGenerator { string Generate(string user, string role); } public class JwtTokenGenerator : IJwtTokenGenerator { public string Generate(string user, string role) { var keyBytes = Encoding.UTF8.GetBytes("w+1alOGke7bSPTgeMVlDXS5FRg3jcjRxkBtG0u3NrOo="); var secret = new SymmetricSecurityKey(keyBytes); var credentials = new SigningCredentials(secret, SecurityAlgorithms.HmacSha256); var claims = new List<Claim> { new Claim(ClaimTypes.Name, user), new Claim(ClaimTypes.Role, role) }; var token = new JwtSecurityToken( "test", claims: claims, expires: DateTime.Now.AddMinutes(120), signingCredentials: credentials ); var jwtTokenHandler = new JwtSecurityTokenHandler(); return jwtTokenHandler.WriteToken(token); } }
+Moja praca
+
+Dołącz
+
+Nowy
+Punkty
